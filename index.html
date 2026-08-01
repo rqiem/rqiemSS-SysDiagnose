@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0D">
+<title>rqiemSS — Network Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="boot-overlay" id="bootOverlay">
+  <div class="boot-card">
+    <div class="boot-mark">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 class="boot-title">rqiemSS</h2>
+    <p class="boot-tagline" id="bootTagline">Inicializando…</p>
+  </div>
+</div>
+
+<div class="app" id="appRoot" style="display:none">
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="mark">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <h1 id="tTitle">rqiemSS</h1>
+        <div class="kicker" id="tSubtitle">Network Intelligence</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px">
+      <button id="historyBtn" class="icon-btn glass" aria-label="Historial" title="Historial de análisis">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 4v5h5M12 8v4l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="tutorialBtn" class="icon-btn glass" aria-label="Tutorial" title="¿Cómo consigo los archivos?">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5.5M12 8v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="segmented" id="langbar">
+        <button data-lang="es" class="active">ES</button>
+        <button data-lang="en">EN</button>
+        <button data-lang="pt">PT</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="dropzone glass" id="dropzone">
+    <input type="file" id="fileInput" multiple>
+    <div class="up-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4L7 9M12 4l5 5" stroke="#6C8CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="#6C8CFF" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <div class="main-txt" id="tDropMain">Arrastrá tus archivos, o tocá para elegir</div>
+    <div class="sub-txt" id="tDropSub">App_Privacy_Report.ndjson (obligatorio) + Datos de análisis .ips (opcional)</div>
+  </div>
+
+  <div class="filelist" id="fileList"></div>
+
+  <div class="matchtime-row glass">
+    <div class="matchtime-label">
+      <span id="tMatchTime">Hora de fin de la partida (opcional)</span>
+      <span class="matchtime-hint" id="tMatchTimeHint">Si la cargás, marcamos automáticamente cualquier apertura posterior</span>
+    </div>
+    <input type="datetime-local" id="matchTimeInput" class="matchtime-input">
+  </div>
+
+  <button class="btn-primary" id="runBtn" disabled>
+    <span id="runBtnLabel">Analizar</span>
+  </button>
+
+  <div class="loading-card glass" id="loadingCard">
+    <div class="ring-wrap">
+      <svg width="96" height="96" viewBox="0 0 96 96">
+        <defs><linearGradient id="ringGradSmall" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#6C8CFF"/><stop offset="100%" stop-color="#33D6B0"/>
+        </linearGradient></defs>
+        <circle class="ring-track" cx="48" cy="48" r="41"/>
+        <circle class="ring-fill" id="ringFill" cx="48" cy="48" r="41" stroke="url(#ringGradSmall)" stroke-dasharray="257.6" stroke-dashoffset="257.6"/>
+      </svg>
+      <div class="ring-pct" id="ringPct">0%</div>
+    </div>
+    <div class="loading-status" id="loadingStatus">Inicializando…</div>
+    <div class="loading-note" id="loadingNote"></div>
+    <div class="phase-list" id="phaseList"></div>
+  </div>
+
+  <div class="results" id="results">
+
+    <div class="analyst-signals" id="analystSignals"></div>
+
+    <div class="score-card glass" id="scoreCard">
+      <div class="score-ring-wrap" id="scoreRingWrap">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop id="scoreGradA" offset="0%" stop-color="#33D6B0"/><stop id="scoreGradB" offset="100%" stop-color="#6C8CFF"/>
+          </linearGradient></defs>
+          <circle class="ring-track" cx="66" cy="66" r="57"/>
+          <circle class="ring-fill" id="scoreRing" cx="66" cy="66" r="57" stroke-dasharray="358.1" stroke-dashoffset="358.1"/>
+        </svg>
+        <div class="score-value">
+          <div class="num" id="scoreNum">—</div>
+          <div class="lbl">SCORE</div>
+        </div>
+      </div>
+
+      <div class="clean-check" id="cleanCheck">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle class="clean-circle" cx="44" cy="44" r="38"/>
+          <path class="clean-mark" d="M27 45l12 12 22-24"/>
+        </svg>
+      </div>
+
+      <div class="score-verdict" id="scoreVerdict">—</div>
+      <div class="score-meta" id="scoreMeta"></div>
+      <button class="copy-btn" id="copySummaryBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.7"/></svg>
+        <span id="tCopySummary">Copiar resumen</span>
+      </button>
+    </div>
+
+    <div class="session-card glass" id="sessionCard"></div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="section">
+      <div class="section-head"><span class="title" id="tSecApps">Apps proxy / cheat / jailbreak</span><span class="count" id="cntApps"></span></div>
+      <div id="listApps"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="title" id="tSecFF">Accesos sospechosos — Free Fire</span><span class="count" id="cntFF"></span></div>
+      <div id="listFF"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="title" id="tSecInfra">Infraestructura de cheat conocida</span><span class="count" id="cntInfra"></span></div>
+      <div id="listInfra"></div>
+    </div>
+
+    <div class="section" id="blSection" style="display:none">
+      <div class="section-head"><span class="title" id="tSecBL">Blacklist comunitaria</span><span class="count" id="cntBL"></span></div>
+      <div id="listBL"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="title" id="tSecIPs">IPs / dominios sospechosos</span><span class="count" id="cntIPs"></span></div>
+      <div id="listIPs"></div>
+      <div class="net-note glass" id="netNote" style="display:none"></div>
+    </div>
+
+    <div class="section" id="sysSection" style="display:none">
+      <div class="section-head"><span class="title" id="tSecSys">Sysdiagnose</span><span class="count" id="cntSys"></span></div>
+      <div class="device-card glass" id="deviceCard"></div>
+      <div id="listSys"></div>
+      <div class="sys-crash-note" id="sysCrashNote"></div>
+    </div>
+
+  </div>
+
+  <footer id="tFooter">rqiemSS — análisis 100% local en tu navegador.</footer>
+
+  <div class="social-bar">
+    <a class="social-btn glass" id="socialDiscord" href="#" target="_blank" rel="noopener" aria-label="Discord">
+      <svg width="18" height="14" viewBox="0 0 28 20" fill="none"><path d="M23.5 2.5C21.8 1.7 20 1.1 18.1 0.8c-.2.4-.5 1-.7 1.4-2-.3-4-.3-6 0-.2-.4-.4-1-.7-1.4-1.9.3-3.7.9-5.4 1.7C1.7 7 .8 11.4 1.2 15.7c2.2 1.6 4.3 2.6 6.4 3.3.5-.7 1-1.5 1.4-2.3-.8-.3-1.5-.6-2.2-1 .2-.1.4-.3.5-.4 4.2 2 8.8 2 13 0 .2.1.4.3.5.4-.7.4-1.4.8-2.2 1 .4.8.9 1.6 1.4 2.3 2.1-.7 4.2-1.7 6.4-3.3.5-5-.8-9.4-3.4-13.2ZM10.3 13c-1.3 0-2.3-1.2-2.3-2.6 0-1.4 1-2.6 2.3-2.6 1.3 0 2.3 1.2 2.3 2.6 0 1.4-1 2.6-2.3 2.6Zm7.4 0c-1.3 0-2.3-1.2-2.3-2.6 0-1.4 1-2.6 2.3-2.6 1.3 0 2.3 1.2 2.3 2.6 0 1.4-1 2.6-2.3 2.6Z" fill="currentColor"/></svg>
+    </a>
+    <a class="social-btn glass" id="socialInstagram" href="#" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.6" stroke="currentColor" stroke-width="1.6"/><circle cx="16.6" cy="7.4" r="1" fill="currentColor"/></svg>
+    </a>
+    <a class="social-btn glass" id="socialLink" href="#" target="_blank" rel="noopener" aria-label="Portfolio">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M10 14a4 4 0 0 0 5.7 0l2.3-2.3a4 4 0 0 0-5.7-5.7L11 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 10a4 4 0 0 0-5.7 0l-2.3 2.3a4 4 0 0 0 5.7 5.7L13 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tutorialOverlay">
+  <div class="modal-card glass">
+    <div class="modal-head">
+      <span id="tTutorialTitle">Cómo conseguir los archivos</span>
+      <button class="icon-btn" id="tutorialClose" aria-label="Cerrar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="tutorialBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="historyOverlay">
+  <div class="modal-card glass">
+    <div class="modal-head">
+      <span id="tHistoryTitle">Historial de análisis</span>
+      <button class="icon-btn" id="historyClose" aria-label="Cerrar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="historyBody"></div>
+    <button class="clear-history-btn" id="clearHistoryBtn">
+      <span id="tClearHistory">Borrar historial</span>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script src="src/config-user.js"></script>
+<script src="src/config.js"></script>
+<script src="src/parsers.js"></script>
+<script src="src/network.js"></script>
+<script src="src/analysis.js"></script>
+<script src="src/sysdiagnose.js"></script>
+<script src="src/auth.js"></script>
+<script src="src/bg.js"></script>
+<script src="src/ui.js"></script>
+</body>
+</html>
